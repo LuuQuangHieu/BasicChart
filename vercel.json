@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/yahoo/:path*", "destination": "https://query1.finance.yahoo.com/:path*" },
+    { "source": "/cmc/:path*", "destination": "https://api.coinmarketcap.com/:path*" },
+    { "source": "/fred/:path*", "destination": "https://fred.stlouisfed.org/:path*" },
+    { "source": "/entrade/:path*", "destination": "https://services.entrade.com.vn/:path*" }
+  ]
+}
