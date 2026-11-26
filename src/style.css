@@ -43,6 +43,12 @@ input.invalid { border-color: var(--down); }
 .down { color: var(--down); }
 
 /* watchlist */
+/* drag handle on the border between the chart and the watchlist */
+.wl-resizer { order: 1; flex: 0 0 6px; margin: 0 -3px; position: relative; z-index: 5; cursor: col-resize; touch-action: none; }
+.wl-resizer::after { content: ''; position: absolute; top: 0; bottom: 0; left: 2px; width: 2px; background: transparent; transition: background 0.12s; }
+.wl-resizer:hover::after, .wl-resizer.dragging::after { background: var(--accent); }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing #chart { pointer-events: none; }
 .watchlist { order: 2; position: relative; width: 320px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
 .wl-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 600; }
 .wl-add { color: #fff; background: var(--accent); }

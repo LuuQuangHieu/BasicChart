@@ -30,7 +30,7 @@ which do not allow direct browser requests.
   RSI Tue Trading and Cluster Algo were rebuilt to match the TradingView originals bar by bar.
 - **Tools**: Fibonacci retracement, price & time measure (Shift + click).
 - **Chart behaviour**: TradingView-style mouse wheel zoom on the chart and the price axis; logarithmic price scale (Log button or Alt + L).
-- **Watchlist**: add, remove and drag to reorder (press and hold).
+- **Watchlist**: add, remove and drag to reorder (press and hold); drag its left edge to resize (double-click to reset).
 - **Indicator panes**: hover a pane to move it up or down, or remove it.
 - **Theme**: light / dark.
 - **Saving**: settings, watchlist and drawings are kept in the browser's local storage.

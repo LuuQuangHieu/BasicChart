@@ -21,9 +21,11 @@ interface AppState {
   paneOrder: PaneKey[]; // indicator panes, top to bottom
   theme: Theme;
   logScale: boolean; // logarithmic price scale on the candle pane
+  wlWidth: number; // watchlist width in px, set by dragging its left edge
 }
 
 const STATE_KEY = 'basicchart:state';
+const WL_DEFAULT_WIDTH = 320;
 const fibKey = (m: Market) => `basicchart:fibo:${marketKey(m)}`;
 
 function loadState(): AppState {
@@ -36,6 +38,7 @@ function loadState(): AppState {
     paneOrder: normalizeOrder(null),
     theme: 'light',
     logScale: false,
+    wlWidth: WL_DEFAULT_WIDTH,
   };
   try {
     const s = JSON.parse(localStorage.getItem(STATE_KEY) ?? 'null');
@@ -69,6 +72,7 @@ const session = () => sessionOf(state.market);
 
 document.querySelector('#app')!.innerHTML = `
   <aside class="watchlist"></aside>
+  <div class="wl-resizer" title="Drag to resize the watchlist · double-click to reset"></div>
   <main>
     <header class="toolbar">
       <div class="symbol"><b id="sym"></b><em id="exname"></em><span id="last"></span><span id="chg"></span></div>
@@ -187,6 +191,46 @@ function showTicker(m: Market, t: Ticker) {
   const chg = $('chg');
   chg.textContent = isFinite(pct) ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : '';
   chg.className = pct >= 0 ? 'up' : 'down';
+}
+
+// ---- watchlist width: drag the border between the chart and the watchlist -----------
+
+const WL_MIN = 200;
+const wlEl = document.querySelector<HTMLElement>('.watchlist')!;
+const clampWl = (w: number) => Math.round(Math.max(WL_MIN, Math.min(w, window.innerWidth - 320)));
+const setWlWidth = (w: number) => {
+  wlEl.style.width = `${clampWl(w)}px`;
+};
+setWlWidth(state.wlWidth);
+window.addEventListener('resize', () => setWlWidth(state.wlWidth));
+{
+  const handle = document.querySelector<HTMLElement>('.wl-resizer')!;
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = wlEl.getBoundingClientRect().width;
+    document.body.classList.add('resizing');
+    handle.classList.add('dragging');
+    const move = (ev: PointerEvent) => setWlWidth(startW + startX - ev.clientX); // watchlist is on the right
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      document.body.classList.remove('resizing');
+      handle.classList.remove('dragging');
+      state.wlWidth = clampWl(wlEl.getBoundingClientRect().width);
+      saveState();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  });
+  handle.addEventListener('dblclick', () => {
+    state.wlWidth = WL_DEFAULT_WIDTH;
+    setWlWidth(state.wlWidth);
+    saveState();
+  });
 }
 
 const watchlist = new Watchlist(document.querySelector('.watchlist')!, {
