@@ -125,6 +125,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .tf-custom input { width: 150px; }
 .tf-custom button { border-color: var(--border); }
 .spacer { flex: 1; }
+.tb-row { display: contents; } /* one scrollable row on phones */
 
 /* chart */
 .chart-wrap { position: relative; flex: 1; min-height: 0; }
@@ -164,3 +165,41 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .panel .muted { color: var(--muted); display: block; font-size: 12px; }
 
 #btn-theme { font-size: 15px; line-height: 1; padding: 3px 8px; }
+
+/* ---- phone ------------------------------------------------------------------------ */
+.wl-grab, .wl-fab { display: none; }
+@media (max-width: 768px) {
+  /* toolbar: symbol on top, then one row of timeframes and tools that scrolls sideways */
+  .toolbar { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 8px; }
+  .symbol { min-width: 0; }
+  .tb-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .tb-row::-webkit-scrollbar { display: none; }
+  .tb-row > * { flex-shrink: 0; }
+  .tfs { flex-wrap: nowrap; }
+  .tfs button, .tb-row > button { white-space: nowrap; }
+  .tf-custom input { width: 110px; }
+  .spacer { display: none; }
+  .panel { right: 8px; left: 8px; width: auto; }
+
+  /* watchlist: a sheet over the bottom of the chart */
+  .wl-resizer { display: none; }
+  .watchlist {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 72vh; height: 72dvh; width: auto !important; z-index: 20;
+    background: var(--bg); border-left: 0; border-top: 1px solid var(--border); border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 24px var(--shadow); overflow: hidden; transition: transform 0.25s ease;
+  }
+  .watchlist.swiping { transition: none; }
+  body.wl-hidden .watchlist { transform: translateY(calc(100% + 24px)); }
+  .wl-grab { display: block; flex-shrink: 0; height: 18px; cursor: grab; touch-action: none; position: relative; }
+  .wl-grab::after { content: ''; position: absolute; left: 50%; top: 7px; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--border); }
+  .wl-head { touch-action: none; padding-top: 0; }
+  .wl-row { padding: 9px 12px; } /* bigger tap targets */
+
+  .wl-fab {
+    position: fixed; left: 50%; bottom: 40px; z-index: 19; transform: translateX(-50%) translateY(120px);
+    display: block; padding: 9px 18px; border-radius: 20px; color: #fff; background: var(--accent);
+    box-shadow: 0 4px 14px var(--shadow); font-weight: 600; transition: transform 0.25s ease; pointer-events: none;
+  }
+  body.wl-hidden .wl-fab { transform: translateX(-50%); pointer-events: auto; }
+  .wl-fab:hover { background: var(--accent); }
+}

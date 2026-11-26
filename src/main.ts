@@ -76,18 +76,20 @@ document.querySelector('#app')!.innerHTML = `
   <main>
     <header class="toolbar">
       <div class="symbol"><b id="sym"></b><em id="exname"></em><span id="last"></span><span id="chg"></span></div>
-      <div class="tfs" id="tfs"></div>
-      <form class="tf-custom" id="tf-form">
-        <input id="tf-input" placeholder="e.g. 7m, 45m, 10h, 6M" spellcheck="false" />
-        <button>Apply</button>
-      </form>
-      <div class="spacer"></div>
-      <button id="btn-ind">Indicators</button>
-      <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
-      <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
-      <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
-      <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
-      <button id="btn-theme"></button>
+      <div class="tb-row">
+        <div class="tfs" id="tfs"></div>
+        <form class="tf-custom" id="tf-form">
+          <input id="tf-input" placeholder="e.g. 7m, 45m, 10h, 6M" spellcheck="false" />
+          <button>Apply</button>
+        </form>
+        <div class="spacer"></div>
+        <button id="btn-ind">Indicators</button>
+        <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
+        <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
+        <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
+        <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
+        <button id="btn-theme"></button>
+      </div>
     </header>
     <div class="chart-wrap">
       <div id="chart"></div>
@@ -95,7 +97,8 @@ document.querySelector('#app')!.innerHTML = `
       <div class="status" id="status"></div>
       <div class="panel" id="ind-panel" hidden></div>
     </div>
-  </main>`;
+  </main>
+  <button class="wl-fab" title="Show the watchlist">☰ Watchlist</button>`;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const chartEl = $('chart');
@@ -233,15 +236,55 @@ window.addEventListener('resize', () => setWlWidth(state.wlWidth));
   });
 }
 
+// ---- phone layout: the watchlist is a sheet over the bottom of the chart -------------
+// Tapping a symbol or swiping the sheet down hides it behind a button; the button brings it back.
+
+const phone = window.matchMedia('(max-width: 768px)');
+const setSheet = (open: boolean) => document.body.classList.toggle('wl-hidden', !open);
+document.querySelector<HTMLElement>('.wl-fab')!.onclick = () => setSheet(true);
+
 const watchlist = new Watchlist(document.querySelector('.watchlist')!, {
   list: state.watchlist,
-  onSelect: (m) => selectMarket(m),
+  onSelect: (m) => {
+    selectMarket(m);
+    if (phone.matches) setSheet(false); // uncover the chart
+  },
   onChange: (list) => {
     state.watchlist = list;
     saveState();
   },
   onTick: showTicker,
 });
+{
+  const grab = document.createElement('div');
+  grab.className = 'wl-grab';
+  grab.title = 'Swipe down to hide';
+  wlEl.prepend(grab);
+  // swipe the sheet down by its grab bar or header to hide it; a tap on the grab bar hides it too
+  const swipeStart = (e: PointerEvent) => {
+    if (!phone.matches || (e.target as HTMLElement).closest('button')) return;
+    const y0 = e.clientY;
+    let dy = 0;
+    wlEl.classList.add('swiping');
+    const move = (ev: PointerEvent) => {
+      dy = Math.max(0, ev.clientY - y0);
+      wlEl.style.transform = `translateY(${dy}px)`;
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      wlEl.classList.remove('swiping');
+      wlEl.style.transform = '';
+      if (dy > 60 || (e.target === grab && dy < 5)) setSheet(false);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  };
+  grab.addEventListener('pointerdown', swipeStart);
+  wlEl.querySelector<HTMLElement>('.wl-head')!.addEventListener('pointerdown', swipeStart);
+}
 
 function selectMarket(m: Market) {
   if (marketKey(m) === marketKey(state.market)) return;
