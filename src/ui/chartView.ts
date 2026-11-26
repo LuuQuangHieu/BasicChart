@@ -104,6 +104,7 @@ export class ChartView {
     this.chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
     this.chart.subscribeCrosshairMove((p) => this.renderLegend(p));
     container.addEventListener('wheel', (e) => this.onWheel(e, container), { capture: true, passive: false });
+    this.freeDrag(container);
 
     // TradingView-style pane buttons: hover an indicator pane to get its name and ▲ ▼ to reorder it
     this.paneCtl = document.createElement('div');
@@ -125,6 +126,51 @@ export class ChartView {
       if (btn.dataset.act === 'remove') this.onRemovePane(key);
       else this.onMovePane(key, +btn.dataset.dir!);
     });
+  }
+
+  /**
+   * TradingView-style drag: with auto-scale on, the library only pans in time. When a drag in a pane
+   * starts going up or down, switch that pane's auto-scale off so it pans in price as well.
+   * The first few pixels of the move are held back from the library until the direction is known.
+   * Auto-scale comes back on a new symbol / timeframe, or by double-clicking the price axis.
+   */
+  private freeDrag(container: HTMLElement) {
+    const THRESHOLD = 6;
+    let start: { x: number; y: number; pane: number } | null = null;
+    const scrollOn = () => {
+      const h = this.chart.options().handleScroll as unknown;
+      return typeof h === 'boolean' ? h : (h as { pressedMouseMove?: boolean }).pressedMouseMove !== false;
+    };
+    const down = (x: number, y: number) => {
+      const rect = container.getBoundingClientRect();
+      const lx = x - rect.left, ly = y - rect.top;
+      const hit = lx < this.chart.timeScale().width() ? this.paneAt(ly) : null;
+      start = hit && scrollOn() ? { x, y, pane: hit.index } : null;
+    };
+    const move = (e: Event, x: number, y: number) => {
+      if (!start) return;
+      const dx = Math.abs(x - start.x), dy = Math.abs(y - start.y);
+      if (Math.max(dx, dy) < THRESHOLD) {
+        e.stopPropagation(); // keep it from the library until we know the direction
+        return;
+      }
+      if (dy > dx * 0.5) this.chart.panes()[start.pane]?.getSeries()[0]?.priceScale().setAutoScale(false);
+      start = null;
+    };
+    container.addEventListener('mousedown', (e) => e.button === 0 && down(e.clientX, e.clientY), true);
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) down(e.touches[0].clientX, e.touches[0].clientY);
+      else start = null; // pinch: leave it to the library
+    }, { capture: true, passive: true });
+    window.addEventListener('mousemove', (e) => move(e, e.clientX, e.clientY), true);
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 1) start = null;
+      else move(e, e.touches[0].clientX, e.touches[0].clientY);
+    }, { capture: true, passive: true });
+    const end = () => (start = null);
+    window.addEventListener('mouseup', end, true);
+    window.addEventListener('touchend', end, true);
+    window.addEventListener('touchcancel', end, true);
   }
 
   /** Pane index and its top (px) under a y coordinate of the chart container. */
