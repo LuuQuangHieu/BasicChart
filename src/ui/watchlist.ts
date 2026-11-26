@@ -35,7 +35,7 @@ export class Watchlist {
   private suppressClick = false;
 
   constructor(
-    root: HTMLElement,
+    private readonly root: HTMLElement,
     private readonly opts: Options,
   ) {
     this.list = opts.list;
@@ -128,7 +128,24 @@ export class Watchlist {
       this.listEl.appendChild(el);
     }
     this.rows.get(this.active)?.el.classList.add('active');
+    this.fitColumns();
     this.subscribe();
+  }
+
+  /** Size the symbol and price columns to their widest entry so they never get cut off. */
+  private fitPending = false;
+  private fitColumns() {
+    if (this.fitPending) return;
+    this.fitPending = true;
+    requestAnimationFrame(() => {
+      this.fitPending = false;
+      const widest = (sel: string) =>
+        Math.max(0, ...[...this.root.querySelectorAll<HTMLElement>(sel)].map((e) => e.scrollWidth));
+      const sym = widest('.wl-cols span:nth-child(1), .wl-row .sym');
+      const last = widest('.wl-cols span:nth-child(2), .wl-row .price');
+      this.root.style.setProperty('--wl-sym', `${Math.ceil(sym) + 1}px`);
+      this.root.style.setProperty('--wl-last', `${Math.ceil(last) + 1}px`);
+    });
   }
 
   private subscribe() {
@@ -157,7 +174,9 @@ export class Watchlist {
     const dir = row.last === undefined ? 0 : Math.sign(t.last - row.last);
     row.last = t.last;
     const pct = ((t.last - t.open) / t.open) * 100;
-    row.price.textContent = formatPrice(t.last);
+    const text = formatPrice(t.last);
+    if (text.length !== row.price.textContent?.length) this.fitColumns(); // price got wider or narrower
+    row.price.textContent = text;
     row.change.textContent = isFinite(pct) ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : '';
     row.change.className = 'chg ' + (pct >= 0 ? 'up' : 'down');
     row.vol.textContent = formatVolume(t.quoteVolume);

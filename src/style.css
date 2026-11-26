@@ -54,6 +54,10 @@ body.resizing #chart { pointer-events: none; }
 .wl-add { color: #fff; background: var(--accent); }
 .wl-add:hover { background: #1e53e5; }
 .wl-cols, .wl-row, .wl-res { display: grid; grid-template-columns: 1.5fr 1.2fr 0.8fr 0.6fr; gap: 6px; padding: 5px 10px; align-items: center; }
+/* symbol and price columns get the width of their widest entry (set from JS); 24h and Vol share the rest */
+.wl-cols, .wl-row { grid-template-columns: var(--wl-sym, 1.5fr) var(--wl-last, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.6fr); }
+.wl-cols > span, .wl-row > span:not(.wl-act) { white-space: nowrap; overflow: hidden; }
+.wl-cols > span:nth-child(n+3), .wl-row .chg, .wl-row .vol { text-overflow: ellipsis; }
 .wl-cols { color: var(--muted); font-size: 11px; border-bottom: 1px solid var(--border); }
 .wl-cols span:not(:first-child), .wl-row span:not(:first-child), .wl-res span:not(:first-child) { text-align: right; }
 .wl-list { flex: 1; overflow-y: auto; }
