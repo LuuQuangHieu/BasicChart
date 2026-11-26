@@ -29,7 +29,7 @@ which do not allow direct browser requests.
 - **Indicators**: EMA/SMA, RSI, Stoch RSI, MACD, RSI Tue Trading, Cluster Algo (Skoda Version).
   RSI Tue Trading and Cluster Algo were rebuilt to match the TradingView originals bar by bar.
 - **Tools**: Fibonacci retracement, price & time measure (Shift + click).
-- **Chart behaviour**: TradingView-style mouse wheel zoom on the chart and the price axis.
+- **Chart behaviour**: TradingView-style mouse wheel zoom on the chart and the price axis; logarithmic price scale (Log button or Alt + L).
 - **Watchlist**: add, remove and drag to reorder (press and hold).
 - **Indicator panes**: hover a pane to move it up or down, or remove it.
 - **Theme**: light / dark.

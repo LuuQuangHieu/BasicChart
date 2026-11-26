@@ -20,6 +20,7 @@ interface AppState {
   indicators: IndicatorSettings;
   paneOrder: PaneKey[]; // indicator panes, top to bottom
   theme: Theme;
+  logScale: boolean; // logarithmic price scale on the candle pane
 }
 
 const STATE_KEY = 'basicchart:state';
@@ -34,6 +35,7 @@ function loadState(): AppState {
     indicators: DEFAULT_SETTINGS,
     paneOrder: normalizeOrder(null),
     theme: 'light',
+    logScale: false,
   };
   try {
     const s = JSON.parse(localStorage.getItem(STATE_KEY) ?? 'null');
@@ -80,6 +82,7 @@ document.querySelector('#app')!.innerHTML = `
       <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
       <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
       <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
+      <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
       <button id="btn-theme"></button>
     </header>
     <div class="chart-wrap">
@@ -108,6 +111,23 @@ $('btn-theme').onclick = () => {
   saveState();
   applyTheme();
 };
+function applyLogScale() {
+  chartView.setLogScale(state.logScale);
+  $('btn-log').classList.toggle('active', state.logScale);
+}
+applyLogScale();
+const toggleLogScale = () => {
+  state.logScale = !state.logScale;
+  saveState();
+  applyLogScale();
+};
+$('btn-log').onclick = toggleLogScale;
+window.addEventListener('keydown', (e) => {
+  if (e.altKey && e.code === 'KeyL' && !(e.target instanceof HTMLInputElement)) {
+    e.preventDefault();
+    toggleLogScale();
+  }
+});
 chartView.onRemovePane = (key) => {
   // just switches it off: settings and position are kept, turn it back on from Indicators
   state.indicators = { ...state.indicators, [key]: { ...state.indicators[key], enabled: false } };

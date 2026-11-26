@@ -5,6 +5,7 @@ import {
   HistogramSeries,
   LineSeries,
   LineStyle,
+  PriceScaleMode,
   createChart,
   type IChartApi,
   type ISeriesApi,
@@ -193,9 +194,32 @@ export class ChartView {
     const range = scale.getVisibleRange();
     if (!range) return;
     const factor = Math.exp(delta * 0.002); // scroll down = compress candles, up = stretch
+    if (scale.options().mode === PriceScaleMode.Logarithmic) {
+      // In log mode getVisibleRange() returns prices but setVisibleRange() takes the library's internal
+      // log units: log10(price + 10^-k) + k, where k depends on the price range. Find k by setting a probe
+      // range and reading it back, then zoom around the middle in those units (even on screen).
+      if (range.from <= 0 || range.to <= 0) return;
+      const probe = 20;
+      scale.setVisibleRange({ from: probe + Math.log10(range.from), to: probe + Math.log10(range.to) });
+      const back = scale.getVisibleRange();
+      if (!back || back.to <= 0) return;
+      const k = probe - Math.round(Math.log10(back.to / range.to));
+      const toInternal = (p: number) => Math.log10(p + 10 ** -k) + k;
+      const lo = toInternal(range.from), hi = toInternal(range.to);
+      const mid = (lo + hi) / 2, half = ((hi - lo) / 2) * factor;
+      scale.setVisibleRange({ from: mid - half, to: mid + half });
+      return;
+    }
     const mid = (range.from + range.to) / 2;
     const half = ((range.to - range.from) / 2) * factor;
     scale.setVisibleRange({ from: mid - half, to: mid + half });
+  }
+
+  /** Logarithmic price scale for the candle pane (indicator panes stay linear). */
+  setLogScale(on: boolean) {
+    const scale = this.candles.priceScale();
+    scale.applyOptions({ mode: on ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal });
+    scale.setAutoScale(true);
   }
 
   /** Switch chart colours; call applyIndicators afterwards so level lines follow. */
