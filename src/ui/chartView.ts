@@ -50,6 +50,7 @@ interface Plot {
   color?: (v: number, i: number, values: Series) => string;
   price?: boolean; // value is in price units (format with price precision)
   legend?: boolean; // show in the legend (default true)
+  ma?: string; // moving average: its period, shown in the legend
 }
 
 export class ChartView {
@@ -343,6 +344,7 @@ export class ChartView {
           series: this.chart.addSeries(LineSeries, { ...lineOpts(color, 2), lastValueVisible: false }, 0),
           compute: (c) => f(c, period),
           price: true,
+          ma: String(period),
         });
       });
     }
@@ -495,6 +497,7 @@ export class ChartView {
     }
   }
 
+  /** Top-left legend: OHLC + volume, then the moving averages ("EMA 20/50/200  72,893  76,576  69,520" in their colours). */
   private renderLegend(param?: MouseEventParams<Time>) {
     let idx = this.bars.length - 1;
     if (param?.logical !== undefined && param.time !== undefined) {
@@ -510,13 +513,17 @@ export class ChartView {
     const change = ((b.c - b.o) / b.o) * 100;
     let html = `<div class="ohlc ${cls}">O <b>${f(b.o)}</b> H <b>${f(b.h)}</b> L <b>${f(b.l)}</b> C <b>${f(b.c)}</b>
       <span>${change >= 0 ? '+' : ''}${change.toFixed(2)}%</span> Vol <b>${formatVolume(b.v)}</b></div>`;
-    const parts = this.plots.filter((p) => p.legend !== false).map((p) => {
-      const v = this.values.get(p)?.[idx];
-      const color = (p.series.options() as { color?: string }).color ?? '#b2b5be';
-      const shown = v == null ? '—' : p.price ? f(v) : v.toFixed(2);
-      return `<span style="color:${p.label === 'Hist' ? '#b2b5be' : color}">${p.label} <b>${shown}</b></span>`;
-    });
-    if (parts.length) html += `<div class="ind">${parts.join('')}</div>`;
+    const mas = this.plots.filter((p) => p.ma);
+    if (mas.length) {
+      const type = mas[0].label.split(' ')[0];
+      const values = mas.map((p) => {
+        const v = this.values.get(p)?.[idx];
+        const color = (p.series.options() as { color?: string }).color;
+        return `<b style="color:${color}">${v == null ? '—' : f(v)}</b>`;
+      });
+      html += `<div class="ma">${type} ${mas.map((p) => p.ma).join('/')} ${values.join(' ')}</div>`;
+    }
     this.legend.innerHTML = html;
   }
+
 }
