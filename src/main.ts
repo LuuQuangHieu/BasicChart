@@ -85,13 +85,15 @@ document.querySelector('#app')!.innerHTML = `
           <button>Apply</button>
         </form>
         <div class="spacer"></div>
-        <button id="btn-ind">Indicators</button>
-        <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
-        <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
-        <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
-        <button id="btn-colors" title="Candle colours">Candle</button>
-        <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
-        <button id="btn-theme"></button>
+        <div class="tools" id="tools">
+          <button id="btn-ind">Indicators</button>
+          <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
+          <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
+          <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
+          <button id="btn-colors" title="Candle colours">Candle</button>
+          <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
+          <button id="btn-theme"></button>
+        </div>
       </div>
     </header>
     <div class="chart-wrap">
@@ -102,7 +104,10 @@ document.querySelector('#app')!.innerHTML = `
       <div class="panel" id="color-panel" hidden></div>
     </div>
   </main>
-  <button class="wl-fab" title="Show the watchlist">☰ Watchlist</button>`;
+  <div class="fab-bar">
+    <button class="wl-fab" title="Show the watchlist">☰ Watchlist</button>
+    <button class="tools-fab" id="tools-fab" title="Indicators, drawing tools and display settings">⚙ Settings</button>
+  </div>`;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const chartEl = $('chart');
@@ -305,7 +310,25 @@ window.addEventListener('resize', () => setWlWidth(state.wlWidth));
 
 const phone = window.matchMedia('(max-width: 768px)');
 const setSheet = (open: boolean) => document.body.classList.toggle('wl-hidden', !open);
-document.querySelector<HTMLElement>('.wl-fab')!.onclick = () => setSheet(true);
+document.querySelector<HTMLElement>('.wl-fab')!.onclick = () => {
+  setTools(false);
+  setSheet(true);
+};
+// on phones the tool buttons (Indicators … theme) live in a menu opened by the Settings button
+const setTools = (open: boolean) => {
+  document.body.classList.toggle('tools-open', open);
+  $('tools-fab').classList.toggle('active', open);
+};
+$('tools-fab').onclick = () => setTools(!document.body.classList.contains('tools-open'));
+$('tools').addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest('button');
+  // toggles (Log, theme) keep the menu open; anything that works on the chart closes it
+  if (phone.matches && btn && btn.id !== 'btn-log' && btn.id !== 'btn-theme') setTools(false);
+});
+document.addEventListener('pointerdown', (e) => {
+  const t = e.target as Node;
+  if (document.body.classList.contains('tools-open') && !$('tools').contains(t) && !$('tools-fab').contains(t)) setTools(false);
+});
 
 const watchlist = new Watchlist(document.querySelector('.watchlist')!, {
   list: state.watchlist,

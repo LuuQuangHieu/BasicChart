@@ -123,7 +123,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .tf-custom input { width: 150px; }
 .tf-custom button { border-color: var(--border); }
 .spacer { flex: 1; }
-.tb-row { display: contents; } /* one scrollable row on phones */
+.tb-row, .tools { display: contents; } /* one scrollable row / a menu on phones */
 
 /* chart */
 .chart-wrap { position: relative; flex: 1; min-height: 0; }
@@ -176,7 +176,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 #color-panel .cc-reset { grid-column: 1 / -1; border-color: var(--border); }
 
 /* ---- phone ------------------------------------------------------------------------ */
-.wl-grab, .wl-fab { display: none; }
+.wl-grab, .fab-bar { display: none; }
 @media (max-width: 768px) {
   /* toolbar: symbol on top, then one row of timeframes and tools that scrolls sideways */
   .toolbar { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 8px; }
@@ -204,11 +204,27 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .wl-head { touch-action: none; padding-top: 0; }
   .wl-row { padding: 9px 12px; } /* bigger tap targets */
 
-  .wl-fab {
+  /* Watchlist + Settings buttons, shown while the watchlist sheet is down */
+  .fab-bar {
     position: fixed; left: 50%; bottom: 40px; z-index: 19; transform: translateX(-50%) translateY(120px);
-    display: block; padding: 9px 18px; border-radius: 20px; color: #fff; background: var(--accent);
-    box-shadow: 0 4px 14px var(--shadow); font-weight: 600; transition: transform 0.25s ease; pointer-events: none;
+    display: flex; gap: 8px; transition: transform 0.25s ease; pointer-events: none;
   }
-  body.wl-hidden .wl-fab { transform: translateX(-50%); pointer-events: auto; }
-  .wl-fab:hover { background: var(--accent); }
+  body.wl-hidden .fab-bar { transform: translateX(-50%); pointer-events: auto; }
+  .fab-bar button {
+    padding: 9px 18px; border-radius: 20px; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 14px var(--shadow);
+    color: var(--text); background: var(--panel); border: 1px solid var(--border);
+  }
+  .fab-bar .wl-fab, .fab-bar .wl-fab:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .fab-bar .tools-fab.active { color: #fff; background: var(--accent); }
+
+  /* the tool buttons become a menu above the Settings button */
+  .tools {
+    position: fixed; left: 50%; bottom: 92px; z-index: 21; transform: translateX(-50%); display: none;
+    flex-direction: column; align-items: stretch; min-width: 190px; padding: 6px; gap: 2px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px var(--shadow);
+  }
+  body.tools-open.wl-hidden .tools { display: flex; }
+  .tools button { text-align: left; padding: 10px 12px; font-size: 14px; }
+  .tools #btn-theme { font-size: 14px; padding: 10px 12px; }
+  .tools #btn-theme::after { content: ' Theme'; }
 }
