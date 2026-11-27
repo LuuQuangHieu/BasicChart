@@ -1,5 +1,7 @@
+/** Decimals to show for a price: none from 5 integer digits up (73,212), more for small prices. */
 export function pricePrecision(price: number): number {
   if (!isFinite(price) || price <= 0) return 2;
+  if (price >= 10_000) return 0;
   if (price >= 1000) return 2;
   if (price >= 1) return 4;
   return Math.min(10, Math.ceil(-Math.log10(price)) + 3);
