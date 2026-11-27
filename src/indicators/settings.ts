@@ -12,7 +12,7 @@ export interface IndicatorSettings {
 
 export const DEFAULT_SETTINGS: IndicatorSettings = {
   ma: { enabled: true, type: 'EMA', periods: [20, 50, 200] },
-  rsi: { enabled: true, period: 14, upper: 70, lower: 30 },
+  rsi: { enabled: false, period: 14, upper: 70, lower: 30 },
   stochRsi: { enabled: false, rsiLen: 14, stochLen: 14, k: 3, d: 3 },
   macd: { enabled: false, fast: 12, slow: 26, signal: 9 },
   // defaults of "RSI Tue Trading" on TradingView
