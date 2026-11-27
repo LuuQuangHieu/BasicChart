@@ -118,7 +118,7 @@ function applyTheme() {
   chartView.setTheme(state.theme);
   chartView.applyIndicators(state.indicators, state.paneOrder);
   const btn = $('btn-theme');
-  btn.textContent = state.theme === 'dark' ? '☀' : '☾';
+  btn.textContent = btn.dataset.icon = state.theme === 'dark' ? '☀' : '☾';
   btn.title = state.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
 }
 applyTheme();

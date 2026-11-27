@@ -224,7 +224,17 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px var(--shadow);
   }
   body.tools-open.wl-hidden .tools { display: flex; }
-  .tools button { text-align: left; padding: 10px 12px; font-size: 14px; }
-  .tools #btn-theme { font-size: 14px; padding: 10px 12px; }
-  .tools #btn-theme::after { content: ' Theme'; }
+  .tools button { display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 12px; font-size: 14px; }
+  .tools button::before { display: inline-block; width: 20px; text-align: center; font-size: 16px; color: var(--muted); }
+  .tools button.active::before { color: #fff; }
+  .tools #btn-ind::before { content: '∿'; }
+  .tools #btn-measure::before { content: '↕'; }
+  .tools #btn-fib::before { content: '≣'; }
+  .tools #btn-clear::before { content: '⌫'; }
+  .tools #btn-colors::before { content: '◧'; }
+  .tools #btn-log::before { content: '㏒'; }
+  /* the theme button's text is just its icon (☀ / ☾): show it as the icon, then a label */
+  .tools #btn-theme { font-size: 0; padding: 10px 12px; gap: 0; } /* the hidden text node is a flex item too */
+  .tools #btn-theme::before { content: attr(data-icon); }
+  .tools #btn-theme::after { content: 'Theme'; font-size: 14px; margin-left: 10px; }
 }
