@@ -33,5 +33,5 @@ which do not allow direct browser requests.
 - **Watchlist**: add, remove and drag to reorder (press and hold); drag its left edge to resize (double-click to reset).
 - **Indicator panes**: hover a pane to move it up or down, or remove it.
 - **Theme**: light / dark; candle colours (button left of Log: pick up/down colours or a preset).
-- **Phone layout** (screens up to 768px wide): the watchlist is a sheet over the chart; tap a symbol or swipe it down to hide it, tap “☰ Watchlist” to bring it back. The tool buttons move into a “⚙ Settings” menu next to it.
+- **Phone layout** (screens up to 768px wide): the watchlist is a sheet over the chart; tap a symbol or swipe it down to hide it, tap “Watchlist” to bring it back. The tool buttons move into a “Settings” menu next to it.
 - **Saving**: settings, watchlist and drawings are kept in the browser's local storage.

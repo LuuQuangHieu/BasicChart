@@ -105,8 +105,8 @@ document.querySelector('#app')!.innerHTML = `
     </div>
   </main>
   <div class="fab-bar">
-    <button class="wl-fab" title="Show the watchlist">☰ Watchlist</button>
-    <button class="tools-fab" id="tools-fab" title="Indicators, drawing tools and display settings">⚙ Settings</button>
+    <button class="wl-fab" title="Show the watchlist">Watchlist</button>
+    <button class="tools-fab" id="tools-fab" title="Indicators, drawing tools and display settings">Settings</button>
   </div>`;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
