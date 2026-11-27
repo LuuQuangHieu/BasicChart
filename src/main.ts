@@ -425,6 +425,7 @@ function onPanelInput(e: Event) {
 
 // default zoom when a chart opens: about this many px per candle (more bars on wide screens)
 const BAR_PX = 25 / 12; // ~2.1px
+const RIGHT_PAD = 50; // empty bars to the right of the last candle
 const visibleBars = () => {
   const w = chartView.chart.timeScale().width() || chartEl.clientWidth - 60;
   return Math.round(Math.min(960, Math.max(96, w / BAR_PX)));
@@ -523,8 +524,11 @@ async function load() {
     exhausted = noMore;
     chartView.setBars(store.bars);
     const n = store.bars.length;
-    // few bars (e.g. 3M on a young coin): spread them out instead of leaving empty space on the left
-    chartView.chart.timeScale().setVisibleLogicalRange({ from: Math.max(-2, n - visibleBars()), to: n + Math.min(8, Math.max(2, n / 10)) });
+    // leave RIGHT_PAD empty bars after the last candle; with few bars (e.g. 3M on a young coin)
+    // spread them out instead of leaving empty space on the left
+    const span = visibleBars();
+    const pad = n > span ? RIGHT_PAD : Math.min(8, Math.max(2, n / 10));
+    chartView.chart.timeScale().setVisibleLogicalRange({ from: Math.max(-2, n + pad - span), to: n + pad });
     syncFibo(tf);
     fibo.setFibs(loadFibs(m));
     statusEl.hidden = n > 0;
