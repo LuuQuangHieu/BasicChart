@@ -34,7 +34,7 @@ function loadState(): AppState {
     market: DEFAULT_WATCHLIST[0],
     watchlist: DEFAULT_WATCHLIST,
     tf: '1h',
-    customTfs: ['45m', '10h'],
+    customTfs: [],
     indicators: DEFAULT_SETTINGS,
     paneOrder: normalizeOrder(null),
     theme: 'light',
