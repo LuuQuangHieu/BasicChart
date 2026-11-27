@@ -24,20 +24,30 @@ import { BandFill } from './bandFill';
 import { RsiTueDecor } from './rsiTueDecor';
 import { TZ_SHIFT_SEC, formatPrice, formatVolume, pricePrecision } from './format';
 
-const UP = '#ffffff';
-const DOWN = '#2962ff';
+export const DEFAULT_CANDLE_COLORS = { up: '#ffffff', down: '#2962ff' };
+export type CandleColors = typeof DEFAULT_CANDLE_COLORS;
+
+/** Relative luminance 0 (black) .. 1 (white) of a #rrggbb colour. */
+const luminance = (hex: string) => {
+  const n = parseInt(hex.slice(1, 7), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+};
 
 export type Theme = 'dark' | 'light';
 
-/** Chart colours per theme. Candles stay white (up) / blue (down); on white they get a grey outline. */
+/** Chart colours per theme. Candle colours are the user's; see applyCandleColors. */
 const THEMES = {
   dark: {
     bg: '#131722', text: '#b2b5be', grid: '#1e222d', border: '#2a2e39', separatorHover: '#3a3f4b',
-    upBorder: UP, volUp: UP + '55', volDown: DOWN + '55', rsiLevel: 'rgba(255,255,255,0.6)',
+    rsiLevel: 'rgba(255,255,255,0.6)', volAlpha: '55', ink: '#b2b5be',
   },
   light: {
     bg: '#ffffff', text: '#131722', grid: '#f0f3fa', border: '#e0e3eb', separatorHover: '#c9ccd6',
-    upBorder: '#5d606b', volUp: '#5d606b40', volDown: DOWN + '40', rsiLevel: 'rgba(19,23,34,0.45)',
+    rsiLevel: 'rgba(19,23,34,0.45)', volAlpha: '40', ink: '#5d606b',
   },
 } as const;
 
@@ -61,6 +71,8 @@ export class ChartView {
   private bars: Candle[] = [];
   private precision = 2;
   private theme: Theme = 'dark';
+  private candleColors: CandleColors = DEFAULT_CANDLE_COLORS;
+  private vol = { up: '', down: '' };
   private get colors() {
     return THEMES[this.theme];
   }
@@ -90,11 +102,8 @@ export class ChartView {
       timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false, rightOffset: 8 },
     });
     this.candles = this.chart.addSeries(CandlestickSeries, {
-      upColor: UP,
-      downColor: DOWN,
-      borderVisible: false,
-      wickUpColor: UP,
-      wickDownColor: DOWN,
+      upColor: DEFAULT_CANDLE_COLORS.up,
+      downColor: DEFAULT_CANDLE_COLORS.down,
     });
     this.volume = this.chart.addSeries(HistogramSeries, {
       priceScaleId: 'vol',
@@ -279,8 +288,38 @@ export class ChartView {
       rightPriceScale: { borderColor: c.border },
       timeScale: { borderColor: c.border },
     });
-    this.candles.applyOptions({ borderVisible: theme === 'light', borderUpColor: c.upBorder, borderDownColor: DOWN, wickUpColor: c.upBorder });
-    this.volume.setData(this.bars.map((b) => ({ time: toTime(b.t), value: b.v, color: b.c >= b.o ? c.volUp : c.volDown })));
+    this.applyCandleColors();
+  }
+
+  setCandleColors(colors: CandleColors) {
+    this.candleColors = colors;
+    this.applyCandleColors();
+  }
+
+  /**
+   * Candle, wick, volume and legend colours from the user's up/down colours. A colour that would vanish
+   * into the background (white candles on the light theme, black ones on the dark theme) gets a grey
+   * outline, wick and volume bar instead.
+   */
+  private applyCandleColors() {
+    const c = this.colors;
+    const bgLum = luminance(c.bg);
+    const contrast = (col: string) => {
+      const a = luminance(col) + 0.05, b = bgLum + 0.05;
+      return Math.max(a, b) / Math.min(a, b);
+    };
+    const outline = (col: string) => (contrast(col) < 1.6 ? c.ink : col);
+    const { up, down } = this.candleColors;
+    const upLine = outline(up), downLine = outline(down);
+    this.candles.applyOptions({
+      upColor: up, downColor: down,
+      borderVisible: true, borderUpColor: upLine, borderDownColor: downLine,
+      wickUpColor: upLine, wickDownColor: downLine,
+    });
+    this.vol = { up: upLine + c.volAlpha, down: downLine + c.volAlpha };
+    this.legend.style.setProperty('--legend-up', upLine === up ? up : 'var(--text)');
+    this.legend.style.setProperty('--legend-down', downLine === down ? down : 'var(--text)');
+    this.volume.setData(this.bars.map((b) => ({ time: toTime(b.t), value: b.v, color: b.c >= b.o ? this.vol.up : this.vol.down })));
   }
 
   get data() {
@@ -297,7 +336,7 @@ export class ChartView {
       this.applyPricePrecision();
     }
     this.candles.setData(bars.map((b) => ({ time: toTime(b.t), open: b.o, high: b.h, low: b.l, close: b.c })));
-    this.volume.setData(bars.map((b) => ({ time: toTime(b.t), value: b.v, color: b.c >= b.o ? this.colors.volUp : this.colors.volDown })));
+    this.volume.setData(bars.map((b) => ({ time: toTime(b.t), value: b.v, color: b.c >= b.o ? this.vol.up : this.vol.down })));
     this.refreshPlots(false);
     if (!keepView) this.candles.priceScale().setAutoScale(true);
     if (keepView && range) {
@@ -313,7 +352,7 @@ export class ChartView {
     else this.bars.push(bar);
     const time = toTime(bar.t);
     this.candles.update({ time, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
-    this.volume.update({ time, value: bar.v, color: bar.c >= bar.o ? this.colors.volUp : this.colors.volDown });
+    this.volume.update({ time, value: bar.v, color: bar.c >= bar.o ? this.vol.up : this.vol.down });
     this.refreshPlots(true);
     this.renderLegend();
   }

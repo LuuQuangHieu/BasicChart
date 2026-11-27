@@ -6,7 +6,7 @@ import { PRESET_TIMEFRAMES, parseTimeframe, type Timeframe } from './data/timefr
 import { FiboTool, type Fib } from './drawing/fibo';
 import { MeasureTool } from './drawing/measure';
 import { DEFAULT_SETTINGS, normalizeOrder, type IndicatorSettings, type PaneKey } from './indicators/settings';
-import { ChartView, type Theme } from './ui/chartView';
+import { ChartView, DEFAULT_CANDLE_COLORS, type CandleColors, type Theme } from './ui/chartView';
 import { formatPrice, pricePrecision } from './ui/format';
 import { Watchlist } from './ui/watchlist';
 
@@ -22,6 +22,7 @@ interface AppState {
   theme: Theme;
   logScale: boolean; // logarithmic price scale on the candle pane
   wlWidth: number; // watchlist width in px, set by dragging its left edge
+  candleColors: CandleColors;
 }
 
 const STATE_KEY = 'basicchart:state';
@@ -39,6 +40,7 @@ function loadState(): AppState {
     theme: 'light',
     logScale: false,
     wlWidth: WL_DEFAULT_WIDTH,
+    candleColors: DEFAULT_CANDLE_COLORS,
   };
   try {
     const s = JSON.parse(localStorage.getItem(STATE_KEY) ?? 'null');
@@ -87,6 +89,7 @@ document.querySelector('#app')!.innerHTML = `
         <button id="btn-measure" title="Price & time range: click the start, then the end (or Shift + click)">Measure</button>
         <button id="btn-fib" title="Fibonacci retracement: click the start, then the end">Fibo</button>
         <button id="btn-clear" title="Remove all Fibonacci drawings on this symbol">Clear drawings</button>
+        <button id="btn-colors" title="Candle colours">Candle</button>
         <button id="btn-log" title="Logarithmic price scale (Alt + L)">Log</button>
         <button id="btn-theme"></button>
       </div>
@@ -96,6 +99,7 @@ document.querySelector('#app')!.innerHTML = `
       <div class="legend" id="legend"></div>
       <div class="status" id="status"></div>
       <div class="panel" id="ind-panel" hidden></div>
+      <div class="panel" id="color-panel" hidden></div>
     </div>
   </main>
   <button class="wl-fab" title="Show the watchlist">☰ Watchlist</button>`;
@@ -118,6 +122,61 @@ $('btn-theme').onclick = () => {
   saveState();
   applyTheme();
 };
+// ---- candle colours ------------------------------------------------------------------
+
+const CANDLE_PRESETS: { name: string; up: string; down: string }[] = [
+  { name: 'White / Blue', ...DEFAULT_CANDLE_COLORS },
+  { name: 'Green / Red', up: '#26a69a', down: '#ef5350' },
+  { name: 'Bright green / red', up: '#089981', down: '#f23645' },
+  { name: 'Blue / Orange', up: '#2962ff', down: '#ff9800' },
+  { name: 'White / Black', up: '#ffffff', down: '#000000' },
+];
+const colorPanel = $('color-panel');
+function applyCandleColors() {
+  chartView.setCandleColors(state.candleColors);
+}
+function renderColorPanel() {
+  const swatch = (p: { up: string; down: string }) => `<i style="background:${p.up}"></i><i style="background:${p.down}"></i>`;
+  colorPanel.innerHTML = `
+    <section>
+      <label class="title">Candle colours</label>
+      <label class="cc-row">Up <input type="color" id="cc-up" value="${state.candleColors.up}" /></label>
+      <label class="cc-row">Down <input type="color" id="cc-down" value="${state.candleColors.down}" /></label>
+      <div class="cc-presets">${CANDLE_PRESETS.map((p, i) => `<button class="cc-preset" data-i="${i}" title="${p.name}">${swatch(p)}</button>`).join('')}</div>
+      <button class="cc-reset">Reset to default</button>
+    </section>`;
+}
+const setCandleColors = (colors: CandleColors, save = true) => {
+  state.candleColors = colors;
+  applyCandleColors();
+  if (save) saveState();
+};
+$('btn-colors').onclick = (e) => {
+  e.stopPropagation();
+  colorPanel.hidden = !colorPanel.hidden;
+  $('btn-colors').classList.toggle('active', !colorPanel.hidden);
+  if (!colorPanel.hidden) renderColorPanel();
+};
+// live preview while dragging in the colour picker, saved when it closes
+colorPanel.addEventListener('input', () => setCandleColors({
+  up: $<HTMLInputElement>('cc-up').value, down: $<HTMLInputElement>('cc-down').value,
+}, false));
+colorPanel.addEventListener('change', () => saveState());
+colorPanel.addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
+  if (!btn) return;
+  const p = btn.classList.contains('cc-reset') ? DEFAULT_CANDLE_COLORS : CANDLE_PRESETS[+btn.dataset.i!];
+  if (!p) return;
+  setCandleColors({ up: p.up, down: p.down });
+  renderColorPanel();
+});
+document.addEventListener('mousedown', (e) => {
+  if (colorPanel.hidden || colorPanel.contains(e.target as Node) || $('btn-colors').contains(e.target as Node)) return;
+  colorPanel.hidden = true;
+  $('btn-colors').classList.remove('active');
+});
+applyCandleColors();
+
 function applyLogScale() {
   chartView.setLogScale(state.logScale);
   $('btn-log').classList.toggle('active', state.logScale);

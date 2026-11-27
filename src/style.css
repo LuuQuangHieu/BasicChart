@@ -7,7 +7,6 @@
   --up: #26a69a;
   --down: #ef5350;
   --accent: #2962ff;
-  --candle-up-ink: #ffffff; /* legend text for up candles (white candles) */
   --custom-tf: #f5c542;
   --shadow: #000a;
   color-scheme: dark;
@@ -22,7 +21,6 @@
   --up: #089981;
   --down: #f23645;
   --accent: #2962ff;
-  --candle-up-ink: #131722;
   --custom-tf: #b8860b;
   --shadow: #0003;
   color-scheme: light;
@@ -143,8 +141,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   font-variant-numeric: tabular-nums; }
 .legend .ohlc { color: var(--muted); }
 .legend .ohlc b { font-weight: 500; }
-.legend .ohlc.up b, .legend .ohlc.up span { color: var(--candle-up-ink); }
-.legend .ohlc.down b, .legend .ohlc.down span { color: #5b8cff; }
+.legend .ohlc.up b, .legend .ohlc.up span { color: var(--legend-up); }
+.legend .ohlc.down b, .legend .ohlc.down span { color: var(--legend-down); }
 .legend .ind { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 2px; }
 .legend .ind b { font-weight: 500; }
 .legend .ma { color: var(--muted); }
@@ -167,6 +165,15 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .panel .muted { color: var(--muted); display: block; font-size: 12px; }
 
 #btn-theme { font-size: 15px; line-height: 1; padding: 3px 8px; }
+
+/* candle colour button and picker */
+.cc-preset i { display: inline-block; width: 6px; height: 14px; border-radius: 1px; box-shadow: 0 0 0 1px var(--border); }
+#color-panel { width: 230px; }
+#color-panel .cc-row { grid-column: 1 / -1; display: flex; flex-direction: row; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text); }
+#color-panel input[type='color'] { width: 44px; height: 26px; padding: 1px 2px; cursor: pointer; }
+#color-panel .cc-presets { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.cc-preset { display: inline-flex; gap: 2px; padding: 4px 6px; border-color: var(--border); }
+#color-panel .cc-reset { grid-column: 1 / -1; border-color: var(--border); }
 
 /* ---- phone ------------------------------------------------------------------------ */
 .wl-grab, .wl-fab { display: none; }
