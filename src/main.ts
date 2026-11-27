@@ -33,7 +33,7 @@ function loadState(): AppState {
   const fallback: AppState = {
     market: DEFAULT_WATCHLIST[0],
     watchlist: DEFAULT_WATCHLIST,
-    tf: '1h',
+    tf: '1W',
     customTfs: [],
     indicators: DEFAULT_SETTINGS,
     paneOrder: normalizeOrder(null),
