@@ -170,11 +170,16 @@ colorPanel.addEventListener('click', (e) => {
   setCandleColors({ up: p.up, down: p.down });
   renderColorPanel();
 });
-document.addEventListener('mousedown', (e) => {
-  if (colorPanel.hidden || colorPanel.contains(e.target as Node) || $('btn-colors').contains(e.target as Node)) return;
-  colorPanel.hidden = true;
-  $('btn-colors').classList.remove('active');
-});
+// a click outside a popup panel (and its button) closes it
+const closeOnOutsideClick = (panelId: string, btnId: string) =>
+  document.addEventListener('pointerdown', (e) => {
+    const panel = $(panelId), btn = $(btnId);
+    if (panel.hidden || panel.contains(e.target as Node) || btn.contains(e.target as Node)) return;
+    panel.hidden = true;
+    btn.classList.remove('active');
+  });
+closeOnOutsideClick('color-panel', 'btn-colors');
+closeOnOutsideClick('ind-panel', 'btn-ind');
 applyCandleColors();
 
 function applyLogScale() {
