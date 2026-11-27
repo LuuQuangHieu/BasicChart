@@ -214,8 +214,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     padding: 9px 18px; border-radius: 20px; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 14px var(--shadow);
     color: var(--text); background: var(--panel); border: 1px solid var(--border);
   }
-  .fab-bar .wl-fab, .fab-bar .wl-fab:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
-  .fab-bar .tools-fab.active { color: #fff; background: var(--accent); }
+  .fab-bar button, .fab-bar button:hover, .fab-bar button.active { color: #fff; background: var(--accent); border-color: var(--accent); }
 
   /* the tool buttons become a menu above the Settings button */
   .tools {
