@@ -50,3 +50,16 @@ cp app/build/outputs/apk/release/app-release.apk ../BasicChart.apk
 ```
 
 The Android code is in `Basic chart android/`. Its launcher icon is drawn by `tools/make-icons.swift` there (`swift tools/make-icons.swift`).
+
+## macOS app
+
+`BasicChart-macOS.zip` holds "Basic chart.app" (Apple silicon and Intel, macOS 12+): a window with this web app
+packed inside, fetching its data itself like the Android app. Unzip it and drag the app to Applications.
+It is signed ad hoc, so on another Mac open it the first time with right-click ▸ Open.
+
+The code is in `Basic chart MacOS/`. To rebuild after changing the web app (needs Xcode and Node.js):
+
+```bash
+"Basic chart MacOS/build.sh"
+cp "Basic chart MacOS/build/Basic chart-macOS.zip" BasicChart-macOS.zip
+```
