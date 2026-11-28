@@ -45,8 +45,8 @@ To rebuild it after changing the web app (needs Android Studio / the Android SDK
 
 ```bash
 npm run build
-cd android && ./gradlew assembleRelease
+cd "Basic chart android" && ./gradlew assembleRelease
 cp app/build/outputs/apk/release/app-release.apk ../BasicChart.apk
 ```
 
-The launcher icon is drawn by `android/tools/make-icons.swift` (`swift tools/make-icons.swift` from `android/`).
+The Android code is in `Basic chart android/`. Its launcher icon is drawn by `tools/make-icons.swift` there (`swift tools/make-icons.swift`).

@@ -1,5 +1,5 @@
 // Draws the Basic chart launcher icons: a glowing neon "BC" on black.
-// Run from the android/ folder:  swift tools/make-icons.swift
+// Run from the "Basic chart android" folder:  swift tools/make-icons.swift
 import AppKit
 
 let res = "app/src/main/res"
